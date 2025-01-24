@@ -8,8 +8,10 @@ import adoptionsRouter from './routes/adoption.router.js';
 import sessionsRouter from './routes/sessions.router.js';
 
 // Importo lo necesario para generar los mocks
-import { generatePets } from './mocks/petsMocks.js'; // Importa el generador de mocks
-import petModel from './dao/models/Pet.js'; // Importa el modelo de mascotas
+//import { generatePets } from './mocks/petsMocks.js'; // Importa el generador de mocks cambiado para el router
+//import petModel from './dao/models/Pet.js'; // Importa el modelo de mascotas cambiado para el router
+
+import mocksRouter from './routes/mocks.router.js';
 
 // Importo el mid para manejo de errores custom
 import { errorHandler } from './middleware/errorHandler.js';
@@ -20,11 +22,13 @@ import logger, { requestLogger } from './utils/logger.js';
 
 // Establecer el modo de strictQuery explícitamente por error al ejecutar npm run dev
 // y agrego confirmcion de conexion a la base de datos
-mongoose.set('strictQuery', false); // Cambia a false si prefieres esa configuración
+mongoose.set('strictQuery', false); // Cambia a false si se prefiere esa configuración
 
 const app = express();
 const PORT = process.env.PORT||3000;
+
 app.use(requestLogger);
+
 const connection = mongoose.connect
        (`mongodb+srv://jeduclosson:HoIOatEgfADTFsA6@cluster0.ngvrtai.mongodb.net/petsmod3?retryWrites=true&w=majority&appName=Cluster0`,
      {
@@ -64,8 +68,14 @@ app.get('/prueba2', async(req, res, next) => {
     res.status(200).send('prueba2');
 })
 
+// Monto el router en la ruta base /api/mocks luego que movi app.get a mocks.router.js
 
-// Endpoint para generar mascotas de prueba
+app.use('/api/mocks', mocksRouter);
+
+// http://localhost:8080/api/mocks/mockingpets?count=10 ahora la llamada seria asi para no escribir /mockingpets/pets
+// http://localhost:8080/api/mocks/mockingusers?count=20  la llamada seria asi para usuarios
+
+/* Endpoint para generar mascotas de prueba
 app.get('/mockingpets', async (req, res) => {
    
     try {
@@ -98,7 +108,7 @@ app.get('/mockingpets', async (req, res) => {
         logger.error('Error generando mocks:', error);
         res.status(500).send({ error: 'Error generando mocks' });
     }
-});
+});*/
 
 // endpoint para probar el logger
 app.get('/loggerTest', (req, res) => {
