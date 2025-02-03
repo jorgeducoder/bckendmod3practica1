@@ -86,6 +86,10 @@ router.get('/mockingusers', async (req, res) => {
 
 
 // Endpoint POST para generar e insertar datos
+// Si uno de los dos parametros es 0 no genera datos y no borra los existentes
+// Si los dos son 0 no hace nada
+// Si los dos son distintos de 0 genera datos nuevos y borra los anteriores.
+
 router.post('/generateData', async (req, res) => {
   try {
     const { users, pets } = req.body;
@@ -94,8 +98,8 @@ router.post('/generateData', async (req, res) => {
     if (
       !Number.isInteger(users) ||
       !Number.isInteger(pets) ||
-      users <= 0 ||
-      pets <= 0 ||
+      users < 0 ||
+      pets < 0 ||
       users > 100 ||
       pets > 100
     ) {
@@ -104,26 +108,39 @@ router.post('/generateData', async (req, res) => {
         .send({ error: 'Los parámetros deben ser números enteros positivos menores o iguales a 100.' });
     }
 
-    // Generar datos
-    const generatedUsers = await generateUsers(users); // Generar usuarios
-    const generatedPets = generatePets(pets); // Generar mascotas
+    // Si ambos valores son 0, no hacer nada
+    if (users === 0 && pets === 0) {
+      return res
+        .status(200)
+        .send({ message: 'No se generaron datos porque ambos valores son 0.' });
+    }
 
-    // Limpiar las colecciones existentes
-    await userModel.deleteMany({});
-    await petModel.deleteMany({});
+    // Generar datos solo si los valores son mayores que 0
+    const generatedUsers = users > 0 ? await generateUsers(users) : [];
+    const generatedPets = pets > 0 ? generatePets(pets) : [];
 
-    // Insertar los nuevos datos
-    await userModel.insertMany(generatedUsers);
-    await petModel.insertMany(generatedPets);
+    // Si se generaron datos, limpiar las colecciones e insertar nuevos datos
+    if (generatedUsers.length > 0 || generatedPets.length > 0) {
+      await userModel.deleteMany({});
+      await petModel.deleteMany({});
+      
+      if (generatedUsers.length > 0) {
+        await userModel.insertMany(generatedUsers);
+      }
+      
+      if (generatedPets.length > 0) {
+        await petModel.insertMany(generatedPets);
+      }
 
-    logger.info(`Generados ${users} usuarios y ${pets} mascotas.`);
-    res.status(200).send({ message: `Se generaron ${users} usuarios y ${pets} mascotas.` });
+      logger.info(`Generados ${users} usuarios y ${pets} mascotas.`);
+      return res.status(200).send({ message: `Se generaron ${users} usuarios y ${pets} mascotas.` });
+    }
+
   } catch (error) {
     logger.error('Error generando datos:', error);
     res.status(500).send({ error: 'Error generando datos' });
   }
 });
-
 
 
 export default router;

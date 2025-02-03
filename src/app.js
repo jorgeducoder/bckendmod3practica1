@@ -8,8 +8,6 @@ import adoptionsRouter from './routes/adoption.router.js';
 import sessionsRouter from './routes/sessions.router.js';
 
 // Importo lo necesario para generar los mocks
-//import { generatePets } from './mocks/petsMocks.js'; // Importa el generador de mocks cambiado para el router
-//import petModel from './dao/models/Pet.js'; // Importa el modelo de mascotas cambiado para el router
 
 import mocksRouter from './routes/mocks.router.js';
 
@@ -75,40 +73,6 @@ app.use('/api/mocks', mocksRouter);
 // http://localhost:8080/api/mocks/mockingpets?count=10 ahora la llamada seria asi para no escribir /mockingpets/pets
 // http://localhost:8080/api/mocks/mockingusers?count=20  la llamada seria asi para usuarios
 
-/* Endpoint para generar mascotas de prueba
-app.get('/mockingpets', async (req, res) => {
-   
-    try {
-
-        // Leer el parámetro `count` de la URL
-        const count = parseInt(req.query.count, 10) || 1; // Por defecto, genera 1 mascota si no se especifica `count`
-
-        // Validar que el valor de count sea un número válido
-        if (isNaN(count) || count <= 0 || count > 100) {
-            return res.status(400).send({ error: 'El parámetro count debe ser un número positivo y menor a 100.' });
-        }
-
-        const pets = generatePets(count); // Genera hasta 100 mascotas
-        
-        // Registrar solo si hay mascotas generadas
-          if (pets.length > 0) {
-            logger.info(`Generadas ${pets.length} pets. Ejemplo: ${JSON.stringify(pets.slice(0, 5), null, 2)}`);
-        } else {
-            logger.warn('No se generaron mascotas.');
-        }
-                
-        await petModel.deleteMany({});// elimino todas las mascotas de la base para no incrementar cada vez que se generan
-
-        await petModel.insertMany(pets); // Inserta los mocks en la base de datos
-        
-        res.status(200).send({ message: `Se generaron ${count} mascotas de prueba.`, pets });
-    
-    } catch (error) {
-        
-        logger.error('Error generando mocks:', error);
-        res.status(500).send({ error: 'Error generando mocks' });
-    }
-});*/
 
 // endpoint para probar el logger
 app.get('/loggerTest', (req, res) => {
