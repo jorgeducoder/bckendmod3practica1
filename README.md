@@ -30,6 +30,16 @@ Preentrega 1: Ajustes
     Si los dos son 0 no hace nada
     Si los dos son distintos de 0 genera datos nuevos y borra los anteriores.
 
+Practica 3: Swagger
+
+    Se agrega carpeta docs y archivo pets.yaml para documentar endpoints de mascotas.
+    
+Practica 4: Test funcional
+
+    Se agrega mocha, chai y supertest para testing de endpoints de usuarios, se incluye archivo supertest.test.js
+    Con los endpoints de prueba Get, Put y Delete.
+    El test se ejecuta si no esta el servidor levantado, y el servidor no se levanta si esta configurada MODE como test
+
 
 
 

@@ -16,10 +16,22 @@ export default class Users {
     }
 
     update = (id,doc) =>{
-        return userModel.findByIdAndUpdate(id,{$set:doc})
+        return userModel.findByIdAndUpdate(id,{$set:doc}, { new: true, runValidators: true });
     }
 
     delete = (id) =>{
         return userModel.findByIdAndDelete(id);
     }
 }
+
+/*import userModel from "./models/User.js";
+
+export default class Users {
+    async getBy(query) {
+        return await userModel.findOne(query);
+    }
+
+    async update(id, updateBody) {
+        return await userModel.findByIdAndUpdate(id, updateBody, { new: true, runValidators: true });
+    }
+}*/

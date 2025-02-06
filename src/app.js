@@ -1,3 +1,4 @@
+import { config } from "./config/config.js";
 import express from 'express';
 import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
@@ -11,12 +12,14 @@ import sessionsRouter from './routes/sessions.router.js';
 
 import mocksRouter from './routes/mocks.router.js';
 
-// Importo el mid para manejo de errores custom
-import { errorHandler } from './middleware/errorHandler.js';
 
 // importo y uso el midd antes de conectar a la base para probar que funcione logger
 import logger, { requestLogger } from './utils/logger.js';
 
+// Importo las funciones  necesarias para usar swagger
+
+import swagger from 'swagger-jsdoc';
+import swageerUi from "swagger-ui-express";
 
 // Establecer el modo de strictQuery explícitamente por error al ejecutar npm run dev
 // y agrego confirmcion de conexion a la base de datos
@@ -24,7 +27,7 @@ mongoose.set('strictQuery', false); // Cambia a false si se prefiere esa configu
 
 const app = express();
 const PORT = process.env.PORT||3000;
-
+logger.info(`PORT en app:  ${PORT}`);
 app.use(requestLogger);
 
 const connection = mongoose.connect
@@ -48,6 +51,25 @@ app.use('/api/users',usersRouter);
 app.use('/api/pets',petsRouter);
 app.use('/api/adoptions',adoptionsRouter);
 app.use('/api/sessions',sessionsRouter);
+
+// Incorporo Swagger para documentacion de CRUD Pets
+
+const options={
+    definition: {
+        openapi: "3.0.0",
+        info: {
+            title: "Documentacion CRUD pets",
+            version: "1.0.0",
+            description: "Documentacion CRUD pets - Detalles"
+        }
+    },
+    apis: ["./src/docs/*.yaml"]
+}
+
+const spec=swagger(options)
+app.use("/api-docs", swageerUi.serve, swageerUi.setup(spec))
+
+
 
 // Endpoint para probar manejo de errores custom
 app.get('/prueba2', async(req, res, next) => {
@@ -86,4 +108,17 @@ app.get('/loggerTest', (req, res) => {
     res.send('Logger completado. Ver mensajes en consola o log files.');
   });
 
-app.listen(PORT,()=>logger.info(`Listening on ${PORT}`))
+  export default app;  // para ejecutar supertest
+
+
+//app.listen(PORT,()=>logger.info(`Listening on ${PORT}`))
+// Solo iniciar el servidor si no se está ejecutando en modo test
+
+
+
+logger.info(`process.env.MODE en app:  ${process.env.MODE}`);
+
+if (process.env.MODE !== 'test') {
+    app.listen(PORT, () => logger.info(`Listening on ${PORT}`));
+}
+
