@@ -24,14 +24,4 @@ export default class Users {
     }
 }
 
-/*import userModel from "./models/User.js";
 
-export default class Users {
-    async getBy(query) {
-        return await userModel.findOne(query);
-    }
-
-    async update(id, updateBody) {
-        return await userModel.findByIdAndUpdate(id, updateBody, { new: true, runValidators: true });
-    }
-}*/

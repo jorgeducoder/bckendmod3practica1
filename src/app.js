@@ -21,6 +21,7 @@ import logger, { requestLogger } from './utils/logger.js';
 import swagger from 'swagger-jsdoc';
 import swageerUi from "swagger-ui-express";
 
+
 // Establecer el modo de strictQuery explícitamente por error al ejecutar npm run dev
 // y agrego confirmcion de conexion a la base de datos
 mongoose.set('strictQuery', false); // Cambia a false si se prefiere esa configuración
@@ -30,11 +31,10 @@ const PORT = process.env.PORT||3000;
 logger.info(`PORT en app:  ${PORT}`);
 app.use(requestLogger);
 
-const connection = mongoose.connect
-       (`mongodb+srv://jeduclosson:HoIOatEgfADTFsA6@cluster0.ngvrtai.mongodb.net/petsmod3?retryWrites=true&w=majority&appName=Cluster0`,
-     {
+    
+    const connection = mongoose.connect(process.env.DB_URL, {
         useNewUrlParser: true,
-        useUnifiedTopology: true,
+        useUnifiedTopology: true
     })
         .then(() => {
             logger.info('Conexión exitosa a la base de datos');
@@ -58,9 +58,9 @@ const options={
     definition: {
         openapi: "3.0.0",
         info: {
-            title: "Documentacion CRUD pets",
+            title: "Documentacion CRUD pets y users",
             version: "1.0.0",
-            description: "Documentacion CRUD pets - Detalles"
+            description: "Documentación de endpoints de usuarios y mascotas"
         }
     },
     apis: ["./src/docs/*.yaml"]

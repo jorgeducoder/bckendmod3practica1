@@ -11,11 +11,9 @@ const getAllPets = async(req,res)=>{
     const pets = await petsService.getAll();
     res.send({status:"success",payload:pets})
 }
-
-const createPet = async(req,res)=> {
-    //const {name,specie,birthDate} = req.body; Controles originales
-    //if(!name||!specie||!birthDate) return res.status(400).send({status:"error",error:"Incomplete values"})
-    
+// Funcion usada para los CustomError y cambiada para el test funcional. 
+/*const createPet = async(req,res)=> {
+        
     // Controles agregados para el manejo de errores
 
         const {name,specie,birthDate}=req.body
@@ -37,20 +35,110 @@ const createPet = async(req,res)=> {
         const pet = PetDTO.getPetInputFrom({name,specie,birthDate});
         const result = await petsService.create(pet);
         res.send({status:"success",payload:result})
-}
+}*/
 
-const updatePet = async(req,res) =>{
+
+const createPet = async (req, res) => {
+    try {
+        const { name, specie, birthDate } = req.body;
+
+        if (!name) { 
+            return res.status(400).json({ error: "Complete al menos el name" });
+        }
+
+        let propiedadesValidas = ['name', 'specie', 'birthDate'];
+        let propiedadesPetNueva = Object.keys(req.body);
+        let valido = propiedadesPetNueva.every(prop => propiedadesValidas.includes(prop));
+
+        if (!valido) {
+            return res.status(400).json({ 
+                error: "Ha ingresado propiedades inválidas", 
+                detalle: propiedadesValidas 
+            });
+        }
+
+        const pet = PetDTO.getPetInputFrom({ name, specie, birthDate });
+        const result = await petsService.create(pet);
+
+        res.send({ status: "success", payload: result });
+    } catch (err) {
+        res.status(500).json({ error: "Error interno del servidor", detalle: err.message });
+    }
+};
+
+
+const updatePet = async (req, res) => {
     const petUpdateBody = req.body;
     const petId = req.params.pid;
-    const result = await petsService.update(petId,petUpdateBody);
-    res.send({status:"success",message:"pet updated"})
-}
 
-const deletePet = async(req,res)=> {
+    // Validaciones manuales
+    if (!petUpdateBody || Object.keys(petUpdateBody).length === 0) {
+        return res.status(400).json({ status: "error", message: "No se enviaron datos para actualizar" });
+    }
+
+    // Validación estricta para 'adopted' (solo acepta true o false)
+    if (petUpdateBody.hasOwnProperty("adopted") && typeof petUpdateBody.adopted !== "boolean") {
+        return res.status(400).json({ status: "error", message: "El campo 'adopted' debe ser booleano (true o false)" });
+    }
+
+    if (petUpdateBody.name && (typeof petUpdateBody.name !== 'string' || petUpdateBody.name.length < 2)) {
+        return res.status(400).json({ status: "error", message: "El nombre debe ser una cadena con al menos 2 caracteres" });
+    }
+
+    const validSpecies = ['dog', 'cat', 'bird', 'other'];
+    if (petUpdateBody.specie && !validSpecies.includes(petUpdateBody.specie)) {
+        return res.status(400).json({ status: "error", message: "Especie inválida. Valores permitidos: dog, cat, bird, other" });
+    }
+
+    if (petUpdateBody.birthDate && isNaN(Date.parse(petUpdateBody.birthDate))) {
+        return res.status(400).json({ status: "error", message: "Fecha de nacimiento inválida" });
+    }
+
+    const objectIdRegex = /^[0-9a-fA-F]{24}$/;
+    if (petUpdateBody.owner && !objectIdRegex.test(petUpdateBody.owner)) {
+        return res.status(400).json({ status: "error", message: "ID de owner inválido" });
+    }
+
+    if (petUpdateBody.image && typeof petUpdateBody.image !== 'string') {
+        return res.status(400).json({ status: "error", message: "El campo image debe ser una URL en formato string" });
+    }
+
+    try {
+        const result = await petsService.update(petId, petUpdateBody);
+        res.send({ status: "success", message: "pet updated", data: result });
+    } catch (err) {
+        res.status(500).json({ status: "error", message: err.message });
+    }
+};
+
+
+const deletePet = async (req, res) => {
     const petId = req.params.pid;
-    const result = await petsService.delete(petId);
-    res.send({status:"success",message:"pet deleted"});
-}
+
+    try {
+        // Verificar si la mascota existe utilizando el DAO
+        const pet = await petsService.getBy({ _id: petId });
+        if (!pet) {
+            return res.status(404).json({ error: "Mascota no encontrada" });
+        }
+
+        // Proceder con la eliminación
+        const result = await petsService.delete(petId);
+
+        // Verificar que se haya eliminado correctamente
+        if (!result) {  // Si result es null o undefined, significa que no se encontró la mascota para eliminar
+            return res.status(404).json({ error: "Mascota no encontrada" });
+        }
+
+        res.send({ status: "success", message: "Pet deleted" });
+        
+    } catch (error) {
+        console.error('Error al eliminar la mascota:', error);
+        res.status(500).json({ error: 'Error al procesar la solicitud' });
+    }
+};
+
+
 
 const createPetWithImage = async(req,res) =>{
     const file = req.file;
